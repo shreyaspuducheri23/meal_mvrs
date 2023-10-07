@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Location Request</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Get User Location</h1>
+    <button onclick="getLocation()">Get Location</button>
+    <p id="demo"></p>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendPosition);
+            } else {
+                document.getElementById("demo").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function sendPosition(position) {
+            $.ajax({
+                type: "POST",
+                url: "/store_location",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "latitude": position.coords.latitude,
+                    "longitude": position.coords.longitude
+                }),
+                dataType: "json",
+                success: function(response) {
+                    document.getElementById("demo").innerHTML = response.message;
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
