@@ -2,66 +2,75 @@
 <html>
 <head>
     <title>Location Request</title>
-    <style>
-        /* Add your loading screen styles */
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Google Maps JavaScript API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
 </head>
 <body>
     <h1>Get User Location</h1>
     <button onclick="getLocation()">Get Location</button>
-    <div id="loader" class="loader" style="display:none;"></div> <!-- Loader -->
     <p id="demo"></p>
+    <!-- Google Maps canvas -->
+    <div id="map" style="height: 400px; width: 100%;"></div>
 
     <script>
-        function getLocation() {
-            // Show loader
-            document.getElementById("loader").style.display = "block";
+        var map;
+        var directionsService;
+        var directionsRenderer;
 
+        // Initialize Google Maps
+        function initMap() {
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15
+            });
+            directionsRenderer.setMap(map);
+        }
+
+        function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(sendPosition);
             } else {
                 document.getElementById("demo").innerHTML = "Geolocation is not supported by this browser.";
-                // Hide loader
-                document.getElementById("loader").style.display = "none";
             }
         }
 
         function sendPosition(position) {
-            $.ajax({
-                type: "POST",
-                url: "/store_location",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    "latitude": position.coords.latitude,
-                    "longitude": position.coords.longitude
-                }),
-                dataType: "json",
-                success: function(response) {
-                    // Hide loader
-                    document.getElementById("loader").style.display = "none";
-                    document.getElementById("demo").innerHTML = response.message;
-                },
-                error: function(err) {
-                    // Hide loader
-                    document.getElementById("loader").style.display = "none";
-                    console.log(err);
+    $.ajax({
+        type: "POST",
+        url: "/store_location",
+        contentType: "application/json",
+        data: JSON.stringify({
+            "latitude": position.coords.latitude,
+            "longitude": position.coords.longitude
+        }),
+        dataType: "json",
+        success: function(response) {
+            // Set the map center to the user location
+            map.setCenter({lat: position.coords.latitude, lng: position.coords.longitude});
+
+            // Get closest food bank location from server and show directions
+            var start = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            var end = new google.maps.LatLng(response.closest_food_bank_latitude, response.closest_food_bank_longitude);
+            var request = {
+                origin: start,
+                destination: end,
+                travelMode: 'DRIVING'
+            };
+            directionsService.route(request, function(result, status) {
+                if (status == 'OK') {
+                    directionsRenderer.setDirections(result);
                 }
             });
+
+            document.getElementById("demo").innerHTML = response.message;
+        },
+        error: function(err) {
+            console.log(err);
         }
+    });
+}
     </script>
 </body>
 </html>

@@ -43,8 +43,13 @@ def store_location():
 
     closest_food_bank_loc = closest_food_bank(latitude, longitude)
     
-    return jsonify({"message": "closest food bank is " + closest_food_bank_loc[0]})
+    return jsonify({
+        "message": "closest food bank is " + closest_food_bank_loc[0],
+        "closest_food_bank_latitude": closest_food_bank_loc[1],
+        "closest_food_bank_longitude": closest_food_bank_loc[2]
+    })
 
 
 if __name__ == '__main__':
     app.run(debug=True)
+
