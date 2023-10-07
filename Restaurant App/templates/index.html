@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Excess Food Entry</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Enter Excess Food Items</h1>
+    <label for="food_item">Food Item:</label>
+    <input type="text" id="food_item">
+    <button onclick="storeFood()">Submit</button>
+    <p id="message"></p>
+
+    <script>
+        function storeFood() {
+            const food_item = document.getElementById("food_item").value;
+            
+            $.ajax({
+                type: "POST",
+                url: "/store_food",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "food_item": food_item
+                }),
+                dataType: "json",
+                success: function(response) {
+                    document.getElementById("message").innerHTML = response.message;
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
